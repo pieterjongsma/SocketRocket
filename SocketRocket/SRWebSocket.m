@@ -1109,7 +1109,7 @@ static const uint8_t SRPayloadLenMask   = 0x7F;
             }
             
             _selfRetain = nil;
-        } else {
+        } else if (self.readyState == SR_OPEN) {
             if ([self.delegate respondsToSelector:@selector(webSocketHasSpaceAvailable:)]) {
                 [self.delegate webSocketHasSpaceAvailable:self];
             }
