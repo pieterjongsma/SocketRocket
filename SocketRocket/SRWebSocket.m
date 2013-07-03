@@ -1083,30 +1083,37 @@ static const uint8_t SRPayloadLenMask   = 0x7F;
         }
     }
     
-    if (_closeWhenFinishedWriting && 
-        _outputBuffer.length - _outputBufferOffset == 0 && 
+    if (_outputBuffer.length - _outputBufferOffset == 0 && 
         (_inputStream.streamStatus != NSStreamStatusNotOpen &&
          _inputStream.streamStatus != NSStreamStatusClosed) &&
         !_sentClose) {
-        _sentClose = YES;
+        // Space available
+        
+        if (_closeWhenFinishedWriting) {        
+            _sentClose = YES;
+                
+            [_outputStream close];
+            [_inputStream close];
             
-        [_outputStream close];
-        [_inputStream close];
-        
-        
-        for (NSArray *runLoop in [_scheduledRunloops copy]) {
-            [self unscheduleFromRunLoop:[runLoop objectAtIndex:0] forMode:[runLoop objectAtIndex:1]];
+            
+            for (NSArray *runLoop in [_scheduledRunloops copy]) {
+                [self unscheduleFromRunLoop:[runLoop objectAtIndex:0] forMode:[runLoop objectAtIndex:1]];
+            }
+            
+            if (!_failed) {
+                [self _performDelegateBlock:^{
+                    if ([self.delegate respondsToSelector:@selector(webSocket:didCloseWithCode:reason:wasClean:)]) {
+                        [self.delegate webSocket:self didCloseWithCode:_closeCode reason:_closeReason wasClean:YES];
+                    }
+                }];
+            }
+            
+            _selfRetain = nil;
+        } else {
+            if ([self.delegate respondsToSelector:@selector(webSocketHasSpaceAvailable:)]) {
+                [self.delegate webSocketHasSpaceAvailable:self];
+            }
         }
-        
-        if (!_failed) {
-            [self _performDelegateBlock:^{
-                if ([self.delegate respondsToSelector:@selector(webSocket:didCloseWithCode:reason:wasClean:)]) {
-                    [self.delegate webSocket:self didCloseWithCode:_closeCode reason:_closeReason wasClean:YES];
-                }
-            }];
-        }
-        
-        _selfRetain = nil;
     }
 }
 

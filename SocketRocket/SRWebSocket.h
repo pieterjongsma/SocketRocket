@@ -87,6 +87,8 @@ extern NSString *const SRWebSocketErrorDomain;
 - (void)webSocket:(SRWebSocket *)webSocket didFailWithError:(NSError *)error;
 - (void)webSocket:(SRWebSocket *)webSocket didCloseWithCode:(NSInteger)code reason:(NSString *)reason wasClean:(BOOL)wasClean;
 
+- (void)webSocketHasSpaceAvailable:(SRWebSocket *)webSocket;
+
 @end
 
 #pragma mark - NSURLRequest (CertificateAdditions)
